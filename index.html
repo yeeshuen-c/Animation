@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-site-verification" content="Di5iGlRw_ZibJ0hmbv7MCgI8wnpTb6QbsO2OYIP7vQI" />
+
+    <title>CPC354 Assignment1</title>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+    attribute vec4 vPosition;
+    attribute vec4 vColor;
+    varying vec4 fColor;
+    uniform vec3 theta;
+    uniform float scale;
+    uniform vec2 trans;
+
+    void main() {
+        vec3 angles = radians(theta);
+        vec3 c = cos(angles);
+        vec3 s = sin(angles);
+
+        mat4 rx = mat4(1.0, 0.0, 0.0, 0.0,
+                       0.0, c.x, s.x, 0.0,
+                       0.0, -s.x, c.x, 0.0,
+                       0.0, 0.0, 0.0, 1.0);
+
+        mat4 ry = mat4(c.y, 0.0, -s.y, 0.0,
+                       0.0, 1.0, 0.0, 0.0,
+                       s.y, 0.0, c.y, 0.0,
+                       0.0, 0.0, 0.0, 1.0);
+
+        mat4 rz = mat4(c.z, s.z, 0.0, 0.0,
+                       -s.z, c.z, 0.0, 0.0,
+                       0.0, 0.0, 1.0, 0.0,
+                       0.0, 0.0, 0.0, 1.0);
+        
+        mat4 rotationMat = rz * ry * rx;
+
+        mat4 scalingMat = mat4(scale, 0.0, 0.0, 0.0,
+                               0.0, scale, 0.0, 0.0,
+                               0.0, 0.0, scale, 0.0,
+                               0.0, 0.0, 0.0, 1.0);
+
+        mat4 transMat = mat4(1.0, 0.0, 0.0, 0.0,
+                             0.0, 1.0, 0.0, 0.0,
+                             0.0, 0.0, 1.0, 0.0,
+                             trans[0], trans[1], 0.0, 1.0);
+
+        gl_Position = transMat * scalingMat * rotationMat * vPosition;
+        fColor = vColor;
+    }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec4 fColor;
+
+    void main() {
+        gl_FragColor = fColor;
+    }
+    </script>
+    <script type="text/javascript" src="./Common/webgl-utils.js"></script>
+    <script type="text/javascript" src="./Common/initShaders.js"></script>
+    <script type="text/javascript" src="./Common/MV.js"></script>
+    <script type="text/javascript" src="./gasket4.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div class="center">
+        <div class="canvas">
+            <canvas id="gl-canvas" width="512" height="512">
+                Oops ... your browser doesn't support the HTML5 canvas element
+            </canvas>
+        </div>
+        <div class="menu">
+
+            <p>TV Ident Properties</p><br>
+            <div id="properties" class="prop1">
+                <label for="color1" class="colorlabel">Surface 1</label>
+                <label for="color2" class="colorlabel">Surface 2</label>
+                <label for="color3" class="colorlabel">Surface 3</label>
+                <label for="color4" class="colorlabel">Surface 4</label>
+                <input type="color" id="color1" class="colorpicker" name="color1" value="#bf0603">
+                <input type="color" id="color2" class="colorpicker" name="color2" value="#f4d58d">
+                <input type="color" id="color3" class="colorpicker" name="color3" value="#708d81">
+                <input type="color" id="color4" class="colorpicker" name="color4" value="#8d0801">
+            </div>
+            <div id="properties" class="prop2">
+                <label for="division">Number of Subdivisions</label>
+                <input type="range" id="division" class="slider settings" name="division" min="1" max="5" step="1"
+                    value="3"><br>
+                <!-- <input type="text" class="textbox" name="division" value="3" readonly><br> -->
+                <label for="scale">Initial Scale</label>
+                <input type="range" id="scale" class="slider settings" name="scale" min="0.5" max="3" step="0.5"
+                    value="1">
+                <!-- <input type="text" class="textbox" name="scale" value="1" readonly><br> -->
+            </div>
+            <!-- <br>
+            <p>Animation Settings</p>
+            <br> -->
+            <div id="properties" class="prop3">
+                <label for="speed">Speed of Animation (%)</label>
+                <input type="range" id="speed" class="slider settings" name="speed" min="100" max="800" step="100"
+                    value="200"><br>
+                <!-- <input type="text" class="textbox" name="speed" value="200" readonly><br> -->
+                <label for="scaleFac">Scaling Factor</label>
+                <input type="range" id="scaleFac" class="slider settings" name="scaleFac" min="0.5" max="3" step="0.5"
+                    value="3"><br>
+                <!-- <input type="text" class="textbox" name="scaleFac" value="3" readonly><br> -->
+                <label for="degree">Rotation Angle (°)</label>
+                <input type="range" id="degree" class="slider settings" name="degree" min="0" max="360" step="10"
+                    value="180"><br>
+                <!-- <input type="text" class="textbox" name="degree" value="180" readonly><br> -->
+                <label for="rotateX">Rotation about x-axis</label>
+                <input type="checkbox" id="rotateX" name="rotateX" checked /><br>
+                <label for="rotateY">Rotation about y-axis</label>
+                <input type="checkbox" id="rotateY" name="rotateY" checked /><br>
+            </div>
+            <div class="button">
+                <div>
+                    <input type="button" id="start-button" value="Start">
+                </div>
+                <div>
+                    <input type="button" id="restart-button" value="Restart">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
